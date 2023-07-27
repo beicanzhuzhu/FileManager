@@ -3,4 +3,7 @@ project(FileManager)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(FileManager main.cpp)
+include_directories(headers)
+
+add_executable(FileManager src/main.cpp src/tinyxml2.cpp)
+target_link_libraries(FileManager -lpdcurses)
