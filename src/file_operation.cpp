@@ -6,19 +6,19 @@
 
 #include <cstring>
 
-std::vector<std::string> FileOperation::get_labels(std::string  labels)
+std::vector<std::string> FileOperation::split_string(std::string  str, const std::string& _s)
 {
-    int size = (int)labels.size();
+    int size = (int)str.size();
     std::vector<std::string> labels_list;
 
-    labels += " ";
+    str += " ";
     std::string::size_type pos;
     for (int i = 0; i < size; ++i)
     {
-        pos = labels.find((std::string)" ",i);
+        pos = str.find(_s, i);
         if(pos < size)
         {
-            std::string s = labels.substr(i, pos -i);
+            std::string s = str.substr(i, pos - i);
             labels_list.push_back(s);
             i = (int)pos;
         }
@@ -26,18 +26,28 @@ std::vector<std::string> FileOperation::get_labels(std::string  labels)
     return labels_list;
 }
 
-FileOperation::FileOperation(const char *path)
+FileOperation::FileOperation(const char *_path)
 {
-    doc.LoadFile(path);
+    doc.LoadFile(_path);
     root = doc.RootElement();
+    current_path = root;
 }
+/*!
+ *
+ * @param _path
+ */
+void FileOperation::cd(const std::string & _path)
+{
+    current_path = find_path(_path, current_path);
+}
+
 /*!
  * 在文件树中寻找指定的文件，并返回所有结果
  * @param name 文件名
  * @param r 查找的目录（默认为根目录，可以不指定）
  * @return 包含所有同名文件的vector
  */
-std::vector<File> FileOperation::find(const std::string& name, const tinyxml2::XMLElement *r = nullptr)
+std::vector<File> FileOperation::find_file(const std::string& name, const tinyxml2::XMLElement *r = nullptr)
 {
     std::vector<File> f_list;
     if (root->FirstChildElement() == nullptr)
@@ -51,9 +61,9 @@ std::vector<File> FileOperation::find(const std::string& name, const tinyxml2::X
             f_list.emplace_back(
                     ptr->Attribute("NAME"),
                     ptr->Attribute("PATH"),
-                    get_labels(labels),
+                    split_string(labels, " "),
                     File::folder);
-            std::vector<File> result = find(name, ptr);
+            std::vector<File> result = find_file(name, ptr);
             f_list.insert(f_list.end(),result.begin(), result.end());
         }else if(strcmp(ptr->Name(), "label") == 0)
         {
@@ -64,7 +74,7 @@ std::vector<File> FileOperation::find(const std::string& name, const tinyxml2::X
             f_list.emplace_back(
                     ptr->Attribute("NAME"),
                     ptr->Attribute("PATH"),
-                    get_labels(labels),
+                    split_string(labels, " "),
                     File::file);
         }
     }
@@ -76,11 +86,11 @@ std::vector<File> FileOperation::find(const std::string& name, const tinyxml2::X
  * @param f 要添加的文件或文件夹
  * @param path 要添加到的目录
  */
-void FileOperation::add(File f, const std::string & path)
+void FileOperation::add(const File& f, const std::string & _path)
 {
     for (const tinyxml2::XMLElement *ptr = root->FirstChildElement(); ptr != nullptr; ptr = ptr->NextSiblingElement())
     {
-        if (strcmp(ptr->Attribute("NAME"), path.c_str()) == 0)
+        if (strcmp(ptr->Attribute("NAME"), _path.c_str()) == 0)
         {
 
         }else if (strcmp(ptr->Name(), "folder") == 0)
@@ -88,6 +98,43 @@ void FileOperation::add(File f, const std::string & path)
         }
     }
 }
+/*!
+ * 返回_path指定的路径的xml节点
+ * @param _path 要寻找的路径
+ * @return 失败返回nullptr
+ */
+const tinyxml2::XMLElement *FileOperation::find_path(const std::string & _path, const tinyxml2::XMLElement * r = nullptr)
+{
+    r = (r == nullptr ? root :r);
+    auto paths = split_string(_path, "\\");
+    auto j = r->FirstChildElement("folder");
+    for (const auto& i : paths)
+    {
+        for (; j != nullptr;j = j->NextSiblingElement("folder"))
+        {
+            if (strcmp(j->Attribute("NAME"), i.c_str()) == 0)
+            {
+                j = j->FirstChildElement("folder");
+                break;
+            }
+        }
+        if(j== nullptr)
+            return nullptr;
+    }
+    return j;
+}
+
+File FileOperation::get_file()
+{
+    return File{current_path->Attribute("NAME"),
+                current_path->Attribute("PATH"),
+                split_string(current_path->FirstChildElement("label")->GetText(), " "),
+                strcmp(current_path->Name(), "file") ? (File::file) : (File::folder)};
+}
+
+
+
+
 
 
 

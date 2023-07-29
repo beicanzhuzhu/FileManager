@@ -15,13 +15,17 @@ class FileOperation
 private:
     tinyxml2::XMLDocument doc;
     tinyxml2::XMLElement *root;
+    const tinyxml2::XMLElement * current_path;
 
-    static std::vector<std::string> get_labels(std::string);
+    static std::vector<std::string> split_string(std::string, const std::string&);
 public:
     explicit FileOperation(const char* path);
 
-    std::vector<File> find(const std::string&, const tinyxml2::XMLElement * r);
-    void add(File, const std::string&);
+    void cd(const std::string&);
+    File get_file();
+    std::vector<File> find_file(const std::string&, const tinyxml2::XMLElement *);
+    const tinyxml2::XMLElement * find_path(const std::string &, const tinyxml2::XMLElement *);
+    void add(const File&, const std::string&);
 
 };
 
