@@ -11,16 +11,37 @@
 class File
 {
 public:
-    enum Mode {file,  folder};
+    enum Mode
+    {
+        file, folder
+    };
 private:
     std::string name;
     std::string path;
-    std::vector<std::string> label;
+    std::vector<std::string> labels;
     Mode mode;
 
 public:
-    File()=default;
-    File(const char * name, const char *path, const std::vector<std::string>& label, Mode mode);
+    File() = default;
+
+    [[nodiscard]] Mode f_mode() const { return mode; };
+
+    [[nodiscard]] std::string get_name() const { return name; };
+
+    [[nodiscard]] std::string get_path() const { return path; };
+
+    [[nodiscard]] std::string get_labels() const
+    {
+        std::string s;
+        for (const auto &x: labels)
+        {
+            s += x;
+            s += " ";
+        }
+        return s;
+    }
+
+    File(const char *name, const char *path, const std::vector<std::string> &label, Mode mode);
 };
 
 

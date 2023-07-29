@@ -1,10 +1,11 @@
-//
+//.
 // Created by bcyz on 2023/7/27.
 //
 
 #include "file_operation.h"
 
 #include <cstring>
+#include <d2d1helper.h>
 
 std::vector<std::string> FileOperation::split_string(std::string  str, const std::string& _s)
 {
@@ -132,10 +133,21 @@ File FileOperation::get_file()
                 strcmp(current_path->Name(), "file") ? (File::file) : (File::folder)};
 }
 
+const tinyxml2::XMLElement *FileOperation::new_element(const File &f, tinyxml2::XMLElement *x = nullptr)
+{
+    x = (x == nullptr ? root : x);
+    if (strcmp(x->Name(), "folder") != 0) return nullptr;
 
+    tinyxml2::XMLElement *new_e;
+    if (f.f_mode() == File::file)
+        new_e = doc.NewElement("file");
+    else
+        new_e = doc.NewElement("folder");
 
+    new_e->SetAttribute("NAME", f.get_name().c_str());
+    new_e->SetAttribute("PATH", f.get_path().c_str());
+    new_e->SetAttribute("LABEL", f.get_labels().c_str());
 
+    x->InsertEndChild(new_e);
 
-
-
-
+}

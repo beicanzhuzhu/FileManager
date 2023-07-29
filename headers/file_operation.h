@@ -21,7 +21,9 @@ private:
 public:
     explicit FileOperation(const char* path);
 
-    void cd(const std::string&);
+    const tinyxml2::XMLElement *new_element(const File &, tinyxml2::XMLElement *);
+
+    void cd(const std::string &);
     File get_file();
     std::vector<File> find_file(const std::string&, const tinyxml2::XMLElement *);
     const tinyxml2::XMLElement * find_path(const std::string &, const tinyxml2::XMLElement *);
